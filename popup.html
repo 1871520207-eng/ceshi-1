@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Light Todo</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="app" aria-label="待办事项">
+      <header class="header">
+        <div>
+          <p class="eyebrow">Today</p>
+          <h1>待办事项</h1>
+        </div>
+        <span class="count" id="taskCount">0</span>
+      </header>
+
+      <form class="composer" id="todoForm">
+        <input
+          id="todoInput"
+          type="text"
+          maxlength="80"
+          autocomplete="off"
+          placeholder="添加一个任务"
+          aria-label="添加一个任务"
+          required
+        >
+        <button type="submit" aria-label="添加">+</button>
+      </form>
+
+      <div class="filters" role="tablist" aria-label="筛选待办">
+        <button class="filter active" type="button" data-filter="all" role="tab" aria-selected="true">全部</button>
+        <button class="filter" type="button" data-filter="active" role="tab" aria-selected="false">未完成</button>
+        <button class="filter" type="button" data-filter="done" role="tab" aria-selected="false">已完成</button>
+      </div>
+
+      <section class="listWrap" aria-live="polite">
+        <ul class="todoList" id="todoList"></ul>
+        <div class="empty" id="emptyState" hidden>
+          <strong>还没有任务</strong>
+          <span>把下一件小事放进来。</span>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <span id="leftCount">0 项未完成</span>
+        <button class="ghost" type="button" id="clearDone">清空已完成</button>
+      </footer>
+    </main>
+    <template id="todoTemplate">
+      <li class="todoItem">
+        <label class="check">
+          <input type="checkbox">
+          <span></span>
+        </label>
+        <span class="todoText"></span>
+        <button class="delete" type="button" aria-label="删除任务">×</button>
+      </li>
+    </template>
+    <script src="popup.js"></script>
+  </body>
+</html>
