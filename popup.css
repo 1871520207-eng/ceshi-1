@@ -237,6 +237,10 @@ h1 {
   color: var(--muted);
 }
 
+.empty[hidden] {
+  display: none;
+}
+
 .empty strong {
   color: var(--ink);
 }
