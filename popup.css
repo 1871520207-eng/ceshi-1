@@ -162,10 +162,27 @@ h1 {
   min-height: 52px;
   padding: 8px 10px;
   border-bottom: 1px solid var(--line);
+  cursor: grab;
+  user-select: none;
+  transition:
+    background 120ms ease,
+    box-shadow 120ms ease,
+    opacity 120ms ease;
 }
 
 .todoItem:last-child {
   border-bottom: 0;
+}
+
+.todoItem:hover {
+  background: #fff8ec;
+}
+
+.todoItem.dragging {
+  background: #f4eadb;
+  box-shadow: inset 3px 0 0 var(--brand);
+  cursor: grabbing;
+  opacity: 0.72;
 }
 
 .check {

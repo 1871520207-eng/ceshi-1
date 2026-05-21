@@ -12,6 +12,7 @@ const filterButtons = [...document.querySelectorAll(".filter")];
 
 let todos = [];
 let currentFilter = "all";
+let draggedTodoId = null;
 
 function getStorage() {
   if (globalThis.chrome?.storage?.local) {
@@ -59,6 +60,42 @@ function visibleTodos() {
   return todos;
 }
 
+function applyVisibleOrder() {
+  const orderedIds = [...list.querySelectorAll(".todoItem")]
+    .map((item) => item.dataset.todoId)
+    .filter(Boolean);
+  const orderedIdSet = new Set(orderedIds);
+  const orderedTodos = orderedIds
+    .map((id) => todos.find((todo) => todo.id === id))
+    .filter(Boolean);
+
+  todos = todos.map((todo) => {
+    if (!orderedIdSet.has(todo.id)) {
+      return todo;
+    }
+
+    return orderedTodos.shift() || todo;
+  });
+}
+
+function getDragAfterElement(container, y) {
+  const draggableItems = [...container.querySelectorAll(".todoItem:not(.dragging)")];
+
+  return draggableItems.reduce(
+    (closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+
+      if (offset < 0 && offset > closest.offset) {
+        return { offset, element: child };
+      }
+
+      return closest;
+    },
+    { offset: Number.NEGATIVE_INFINITY, element: null }
+  ).element;
+}
+
 async function saveAndRender() {
   await storage.write(todos);
   render();
@@ -74,9 +111,25 @@ function render() {
     const text = node.querySelector(".todoText");
     const deleteButton = node.querySelector(".delete");
 
+    node.dataset.todoId = todo.id;
+    node.draggable = true;
     node.classList.toggle("done", todo.done);
     checkbox.checked = todo.done;
     text.textContent = todo.text;
+
+    node.addEventListener("dragstart", (event) => {
+      draggedTodoId = todo.id;
+      node.classList.add("dragging");
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", todo.id);
+    });
+
+    node.addEventListener("dragend", async () => {
+      applyVisibleOrder();
+      draggedTodoId = null;
+      node.classList.remove("dragging");
+      await saveAndRender();
+    });
 
     checkbox.addEventListener("change", async () => {
       todos = todos.map((item) =>
@@ -99,6 +152,34 @@ function render() {
   emptyState.hidden = items.length > 0;
   clearDoneButton.disabled = todos.every((todo) => !todo.done);
 }
+
+list.addEventListener("dragover", (event) => {
+  if (!draggedTodoId) {
+    return;
+  }
+
+  event.preventDefault();
+  const draggingItem = list.querySelector(".todoItem.dragging");
+
+  if (!draggingItem) {
+    return;
+  }
+
+  const afterElement = getDragAfterElement(list, event.clientY);
+  if (afterElement) {
+    list.insertBefore(draggingItem, afterElement);
+  } else {
+    list.append(draggingItem);
+  }
+});
+
+list.addEventListener("drop", (event) => {
+  if (!draggedTodoId) {
+    return;
+  }
+
+  event.preventDefault();
+});
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
